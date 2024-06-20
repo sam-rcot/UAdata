@@ -1,0 +1,8 @@
+src/client_secrets.json
+data/*
+*.xlsx
+*.csv
+*.json
+*.gz
+.DS_Store
+.idea/*
