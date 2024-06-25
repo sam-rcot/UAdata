@@ -13,8 +13,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 SCOPES = ['https://www.googleapis.com/auth/analytics.readonly']
 KEY_FILE_LOCATION = './client_secrets.json'
 VIEW_ID = '150538750'
-OUTPUT_DIR = '../data/all_pages/'
-JSON_DIR = '../data/all_pages/json/'
+OUTPUT_DIR = '../data/all_traffic/'
+JSON_DIR = '../data/all_traffic/json/'
 
 
 def initialize_analyticsreporting():
@@ -31,27 +31,15 @@ def get_report(analytics, date):
                     "viewId": VIEW_ID,
                     "dateRanges": [{"startDate": date, "endDate": date}],
                     "metrics": [
-                        {"expression": "ga:pageviews"},
-                        {"expression": "ga:uniquePageviews"},
-                        {"expression": "ga:avgTimeOnPage"},
-                        {"expression": "ga:entrances"},
+                        {"expression": "ga:users"},
+                        {"expression": "ga:newUsers"},
+                        {"expression": "ga:sessions"},
                         {"expression": "ga:bounceRate"},
-                        {"expression": "ga:exitRate"}
+                        {"expression": "ga:pageviewsPerSession"},
+                        {"expression": "ga:avgSessionDuration"}
                     ],
                     "dimensions": [
-                        {"name": "ga:pagePath"}
-                    ],
-                    "dimensionFilterClauses": [
-                        {
-                            "filters": [
-                                {
-                                    "dimensionName": "ga:pagePath",
-                                    "operator": "REGEXP",
-                                    "not": True,
-                                    "expressions": ["\\?.*"]
-                                }
-                            ]
-                        }
+                        {"name": "ga:channelGrouping"}
                     ],
                     "pageSize": 10000  # Adjust this value as necessary
                 }
@@ -97,16 +85,16 @@ def process_csv_to_excel(file_name):
     df = pd.read_csv(file_name)
 
     # List of numeric columns to convert
-    numeric_columns = ['ga:pageviews', 'ga:uniquePageviews', 'ga:avgTimeOnPage', 'ga:entrances', 'ga:bounceRate',
-                       'ga:exitRate']
+    numeric_columns = ['ga:users', 'ga:newUsers', 'ga:sessions', 'ga:bounceRate', 'ga:pageviewsPerSession',
+                       'ga:avgSessionDuration']
 
     # Convert columns to numeric, replacing commas and handling errors
     for column in numeric_columns:
         # Remove commas (if present) and convert to numeric
         df[column] = pd.to_numeric(df[column].astype(str).str.replace(',', ''), errors='coerce')
 
-    # Sort the DataFrame by ga:pageviews
-    df = df.sort_values(by='ga:pageviews', ascending=False)
+    # Sort the DataFrame by ga:sessions
+    df = df.sort_values(by='ga:sessions', ascending=False)
 
     # Save the DataFrame to an Excel file
     excel_file_name = file_name.replace('.csv', '.xlsx')
@@ -124,8 +112,8 @@ def main():
 
     for date in generate_date_ranges(start_date, end_date):
         date_str = date.strftime('%Y-%m-%d')
-        file_name = f"{OUTPUT_DIR}UniversalAnalytics_AllPages_{date_str}.csv"
-        json_file_name = f"{JSON_DIR}UniversalAnalytics_AllPages_{date_str}.json"
+        file_name = f"{OUTPUT_DIR}UniversalAnalytics_AllTraffic_{date_str}.csv"
+        json_file_name = f"{JSON_DIR}UniversalAnalytics_AllTraffic_{date_str}.json"
 
         logging.info(f"Fetching data for date: {date_str}")
 
